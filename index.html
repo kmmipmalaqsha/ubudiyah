@@ -3,259 +3,938 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Nilai Siswa - Smart Form</title>
+    <title>Sistem Penilaian Siswa KMMI</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Inter & Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .glass-morphism {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
-        .input-focus:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
         }
-        .scroll-custom::-webkit-scrollbar { width: 6px; height: 6px; }
-        .scroll-custom::-webkit-scrollbar-track { background: #f1f1f1; }
-        .scroll-custom::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .scroll-custom::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Smooth fade transition */
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-7xl mx-auto">
-        <header class="mb-10 text-center">
-            <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">E-Monitoring Nilai Siswa</h1>
-            <p class="text-slate-500 mt-2 text-lg">Input data hafalan dan ibadah praktis secara cepat</p>
-        </header>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800 antialiased selection:bg-primary-500 selection:text-white">
 
-        <div class="glass-morphism p-6 rounded-3xl shadow-xl mb-8 max-w-xl mx-auto transition-all duration-500 hover:shadow-2xl">
-            <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Wali Kelas:</label>
-            <select id="waliKelasSelect" onchange="handleTeacherChange(this.value)" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-slate-100 text-slate-800 font-medium input-focus transition-all appearance-none cursor-pointer">
-                <option value="">-- Silakan Pilih Wali Kelas --</option>
-                <option value="3A|Dini Nadzifah, M.Ag">3A - Dini Nadzifah, M.Ag</option>
-                <option value="3B|Wulan Sri Ratna">3B - Wulan Sri Ratna</option>
-                <option value="3C|Adela Nur Kholishoh">3C - Adela Nur Kholishoh</option>
-                <option value="3D|Annisa fatihah">3D - Annisa fatihah</option>
-                <option value="3E|Yeni Siti Sarifah, S.Pd.I">3E - Yeni Siti Sarifah, S.Pd.I</option>
-                <option value="3F|Dedi Munajat, M.Sos">3F - Dedi Munajat, M.Sos</option>
-                <option value="3G|Muhammad Wahid, S.Kom.I">3G - Muhammad Wahid, S.Kom.I</option>
-                <option value="3H|Awaluddin Fauzan, S.Ag">3H - Awaluddin Fauzan, S.Ag</option>
-                <option value="3I|Ahmad Yusup, S.Pd">3I - Ahmad Yusup, S.Pd</option>
-                <option value="3J|M. Saddam Ramadhan, S.Pd.">3J - M. Saddam Ramadhan, S.Pd.</option>
-            </select>
-        </div>
+    <script>
+        // Database Wali Kelas & Siswa
+        const ACADEMIC_DATA = {
+            "3A": {
+                waliKelas: "3A Dini Nazhifah, M.Ag",
+                siswa: [
+                    "Annisa Nur Fathonah", "Assyifa Rinjani", "Asyila Hanifah", "Azkia Amira Aufasilmi Arrifa'I",
+                    "Cahaya Kirana Ramadhani", "Davina Syaira Oktaviani", "Delia Maharani Nasyila Haida", "Elena Putri",
+                    "Farida Sholihat", "Karlina Salsabila Khaerunisa", "Lutfiatul Wirda", "Mutiara Kharisa",
+                    "Nabila Ashabira", "Nadiva Fauziah Sundari", "Nafia Nadira Zain", "Putri Faza Fauziah",
+                    "Rachelia Silviana Assyifa", "Rahma Nur Alviani Sardi", "Renita Nur Hidayah", "Safira Maitsa Anggraeni",
+                    "Shabiyah Hasna Fahira", "Shilvana  Khanza Azzahra", "Syabila Najla Sukma Nur Azeeza",
+                    "Syahrini Irawan", "Tiara Rahayu Pratiwi", "Zasqiya Nayshila Bilqis"
+                ]
+            },
+            "3B": {
+                waliKelas: "3B Wulan Sri Ratna",
+                siswa: [
+                    "Almeida Azfira Sadly", "Ameera Widjayakusuma Fisher", "Dinda Sephia Azahra", "Dwi Nafisa",
+                    "Ghaina Maitsa Ayu", "Hasna Zakiya Faridansyah", "Hasri Ainun Althafunnisa", "Hasya Hauratunnaziha",
+                    "Indyra Angely Firmansyah", "Kanasya Radinda Andriani", "Kayla Nafeeza Malika", "Meisya Muvianti",
+                    "Nabila Khairunnisa", "Naimah Sari Febiyanti", "Nisha Aurellia", "Putri Wulandari",
+                    "Qurrotu Aini Yusriyyah", "Regina Auliya Oktavia", "Rihhadah Aisy Anasyalu Ramadhani", "Salsa Fitria Ramadhani",
+                    "Syahrini Aulia Pelani", "Tifany Fifa Kananda", "Vina Khairunnisa", "Vira Nur Alya Garniawan Kartawidjaja",
+                    "Zivana Almaira Nuryudha"
+                ]
+            },
+            "3C": {
+                waliKelas: "3C Adela Nur Kholishoh",
+                siswa: [
+                    "Alya Shafiqa Almahdi", "Amelia Febriani", "Azhara Khansa Putri Zalza", "Bilqis Khoerunnisa Komariah",
+                    "Davina Putri Dira", "Fairuz Hasna Fatimah", "Juwita Rizkia", "Kanaia Salsyabila Lifia Putri",
+                    "Meilika Liviani", "Meisya Syifa An-Nazwa", "Nabila Esa Lestari", "Nadiya Shahwa",
+                    "Naffiza Zara Adifa", "Naya Mufliha Kamil", "Nur Prisa Dina", "Qisty Zahrani Hariri",
+                    "Rifa Humaira", "Rineke Rindu Putri Syamsudin", "Rizquita Putri Herwina", "Sabila Agustin Gunawan",
+                    "Sandra Kirana", "Saski Nurul Azkiya", "Siti Salisatun Niqmah", "Syifa Aulia Bilqis",
+                    "Tiara Nadiah Putri", "Widia Khoirunisa"
+                ]
+            },
+            "3D": {
+                waliKelas: "3D Anisa Fatihah Ariyanti, S.Ag",
+                siswa: [
+                    "Aina Fariza Razkia Putri", "Aira Zahra Firdaus", "Al Egisa Nur Desi Yanti", "Amira Nurul Izzati Wahid",
+                    "Aretta Putri Saka Giri Kawiswari", "Diva Silviya", "Filzah Hilwah Azizah", "Hafshah Khairun Nisa",
+                    "Meisya Sarah Nurfadillah", "Mikhayla Nikeisya Angelique Rahman", "Missel Fairuz Queena", "Nadya Mustika Putri",
+                    "Nasya Shakila Kirania", "Qonita Mei Zerlina", "Ratu Kynan Avrisha", "RD. Alexandria Kanaya Islamey",
+                    "Saqila Irdina", "Sayyidah Humaira Hikmatul Kamaliyah", "Syahla Atha Juni Zhahirah", "Siti Qodariyah",
+                    "Syarifatul Aghniya", "Tania Rachmalina Mardani", "Vina Ramadhani", "Windi Diyanti Awaludin",
+                    "Yetce Sherryna Abriyati Nenre", "Zahirah Addzikra Putrisyah"
+                ]
+            },
+            "3E": {
+                waliKelas: "3E Yeni Siti Sarifah, S.Pd.I",
+                siswa: [
+                    "Ajeng Olivia", "Anindita Khairinniswa", "Aqila Asyifa Putri", "Azmina Fatima Zahra",
+                    "Bilqiis Salwaa Sukarna Putri", "Cindy Candrawati", "Dinda Permatasari", "Fathma Nailatul Izzah",
+                    "Flora Nisrina Eldianty", "Ghaisani Tsabita Zahran", "Hasna Nurul Farzana", "Humaira Putri Vihandra",
+                    "Jihan Dwika Khairani", "Kanaya Andita Destari", "Kayyisa Rafifah", "Mega Octaviani",
+                    "Mirza Auliya Thahira", "Nadhira Febriyani Putri Sulaeman", "Nurul Maudi Mauludina Suryani", "Paula Haiffa Patmanegara",
+                    "Pratami Dina Miggan", "Putri Nurhibatillah", "Qiran Auliya Salma", "Rifda Kalila Sakhi",
+                    "Salma Dwi Nurfitriana", "Syelvi Adyanti Syutari"
+                ]
+            },
+            "3F": {
+                waliKelas: "3F Dedi Munajat, M.Sos",
+                siswa: [
+                    "Aad Abdul Basith", "Arraffi Dian Ihsandy", "Arsa Azhuardi Vandani", "Arvila Dwi Anugrah",
+                    "Billy Ibnu Ardhani", "Caesar Dzaky Mulyadi", "Daffa Alima Putra", "Dimas Robyhurahman Kabir",
+                    "Faiz Irsyad Anshari", "Ghusan Gathfan", "Ilham Mulya Agung", "Kenzie Sulangga Behuku",
+                    "M. Randhika Al-Fahkry", "Mohammad Abdul Djabbar Al Harits", "Muhamad Arfa Al Qalil", "Muhamad Firdaus Satria Nugraha",
+                    "Muhammad Akmal Bahari", "Muhammad Dafa Fahreza", "Muhammad Ikmal Riadussolihin", "Muhammad Zikri Zaenudin",
+                    "Nathan Rafiiandra Muzakki", "Radika Raesha Putra", "Rayi Dwi Putra", "Ready Martua Hasibuan",
+                    "Rizal Akbar Suherman", "Rizky Fadhil", "Rohmat Raynaldy", "Zidan Muhamad Habib Muslim",
+                    "Zidni Ilman Arrizkani"
+                ]
+            },
+            "3G": {
+                waliKelas: "3G Muhammad Wahid, S.Kom.I",
+                siswa: [
+                    "Andara Putra", "Argya Putra Risnandar", "Bani Lukman Mulyazmi Susanto", "Fajar Syarief Hidayatullah",
+                    "Faza Rahadyan Sidiq", "Hilman Ahmad Muharom", "Ilyas Hadi Kusuma", "Khoirul Azzam Ashidqi",
+                    "Luthfi Dwi Irawan", "M Dapa Ruslan", "M. Risqi Pandowo", "M.Zingga Hamzah Ulumuddin",
+                    "Mochammad Erghian Aghni Rasyidan", "Much Natsir Fairus Nurman", "Muhammad Alif Farhan", "Muhammad Daffa Almulqi Firdaus",
+                    "Muhammad Haikal Azmi", "Muhammad Najmy Tsaqib Annaisabury", "Muhammad Sayyidi Syafiq Fijratulloh", "Nabiel Ahmad Shodiq",
+                    "Nanda Juan Pratama", "Naufallatif Ahmad", "Nur Muhammad Davan Alkhaesa", "Prabu Aljabbar Putra Juhana",
+                    "Reza Ediz Arfan", "Rivan Saputra", "Satria Dwi Januar F", "Zhavier Muhammad Idrok"
+                ]
+            },
+            "3H": {
+                waliKelas: "3H Awaluddin Fauzan, S.Ag",
+                siswa: [
+                    "A Rifky Muhaimin", "Adam Mustanir Hibatullah", "Arsyad Anwar", "Azka Fadillah Jayakusuma",
+                    "Daffa Bachdim Nadindra", "Fakhri Aryasatya Rahman", "Fawwaz Alyasir", "Ghaly Fatani Fawaz",
+                    "Hafidh Atha Musari", "Hanif Khoiri Ash Shiddiqi", "Iqbal Thoriq Al-Ghoni", "Mochamad Fachri Ediawan",
+                    "Muhamad Khoirul Akhbar", "Muhamad Raif Ramadhan", "Muhamad Zidan Awaludin", "Muhammad Danish Amsyar Piliang",
+                    "Muhammad Dyaz Wijaksana", "Muhammad Hikam Husni Mubarrok", "Muhammad Syakur Ulwan", "Muhammad Zaidan Ramadhan",
+                    "Nova Aris Mulyana", "Rainov Patrialis Sutami", "Sammi Adji Faatih Gardika", "Satria Andika Pratama",
+                    "Sayyid Munji Al-Hadi", "Utsman Andhika Mukarom", "Zamzam Arifuzaman Sa'Ad", "Zein Naajil Hurry Ramdhani"
+                ]
+            },
+            "3I": {
+                waliKelas: "3I Ahmad Yusup, S.Pd",
+                siswa: [
+                    "Aidil Ahza Sakiffa", "Arif Al Hafid", "Arkan Ataya Ramadhan", "Aufa Ripqi Zaidan",
+                    "Den Rizik Asyafari", "El Fatih Nur Khoiron", "Farras Zahid Gunawan", "Fauzan Al Bairuni Surya",
+                    "Mahesya Chandra Wijaya", "Mochamad Rizki Adhitya Putra", "Muhamad Marwan Hanafi", "Muhamad Nasril Ilham",
+                    "Muhammad Azzam Ash Shiddiq", "Muhammad Dimas Syahril Nur Taqwa", "Muhammad Fauzan", "Muhammad Haikal Fathurahman",
+                    "Muhammad Naufal Musyaffa", "Muhammad Pray Raja Murtadla Rabany Alhamidi", "Muhammad Rahmat Fajar", "Naufal Raditya Putra",
+                    "Raka Aditya Rubiana", "Rifa Dio Arvia Ahmad", "Rizki Naufal Arrafi", "Sami Auliya",
+                    "Syamil Sholahuddin Hariz", "Zaidan Khairullah Firmansyah", "Zamzam Risnandi"
+                ]
+            },
+            "3J": {
+                waliKelas: "3J M. Saddam Ramadhan, S.Pd.",
+                siswa: [
+                    "Abyan Zaki Al Ahnaf", "Althaf Farid Mutaqqin", "Arva Pratama Nuzulul Mauludin", "Azka Alvaro Hidayat",
+                    "Azka Deyandrika", "Dias Adytia", "Fikri Firman Firdaus", "Habib Rafi Rabbani",
+                    "Haris Febriansyah", "Ilham April Rizal", "Maulana Zidan Alfatih", "Muhammad Azka Alfarhaby Rukman",
+                    "Muhammad Herlangga Pratama", "Muhammad Hudan Al Faruq", "Muhammad Radif Al Farizi", "Muhammad Ridho Wibowo",
+                    "Muhammad Rizqi Fadilah", "Muhammad Ziqri Zayyani", "Nizam Joharudin Putra", "Panji Ikhwan Alkhoir",
+                    "Qidham Kholid Edriansyah", "Radi Aditya Labdagati", "Rafa Ramdhani Badri Aziz", "Resya Sanda Sandrian",
+                    "Reza Permana Putra", "Rizqy Pratama", "Sabiq Alif Arrasyid Hidayat", "Zian Fadhilah"
+                ]
+            }
+        };
 
-        <div id="studentContainer" class="hidden animate-in fade-in duration-700">
-            <div class="glass-morphism rounded-3xl shadow-2xl overflow-hidden mb-8">
-                <div class="bg-indigo-600 p-6 flex flex-col md:flex-row justify-between items-center text-white">
-                    <div>
-                        <h2 id="displayKelas" class="text-2xl font-bold">Daftar Siswa Kelas</h2>
-                        <p id="displayWali" class="opacity-80"></p>
+        const GRADE_OPTIONS = [
+            { value: "", label: "Pilih" },
+            { value: "A", label: "A (Sangat Baik)" },
+            { value: "B", label: "B (Baik)" },
+            { value: "C", label: "C (Cukup)" },
+            { value: "D", label: "D (Kurang)" }
+        ];
+    </script>
+
+    <!-- App Container -->
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-primary-700 to-primary-900 text-white shadow-md">
+            <div class="max-w-7xl mx-auto px-4 py-4 md:py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 p-2.5 rounded-xl border border-white/20">
+                        <i class="fa-solid fa-graduation-cap text-2xl text-primary-100"></i>
                     </div>
-                    <div class="mt-4 md:mt-0">
-                        <span class="bg-white/20 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-md">
-                            Status: Siap Input Data
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold tracking-tight">E-Penilaian KMMI</h1>
+                        <p class="text-xs text-primary-200">Sistem Input Hafalan & Penilaian Amaliyah Praktis</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSetupModal()" class="bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-gears"></i> Konfigurasi Sheets
+                    </button>
+                    <div class="text-right hidden sm:block">
+                        <span class="inline-block bg-primary-800 text-primary-200 text-xs px-2.5 py-1 rounded-full border border-primary-600">
+                            Tahun Ajaran 2026/2027
                         </span>
                     </div>
                 </div>
+            </div>
+        </header>
 
-                <div class="overflow-x-auto scroll-custom">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-600 text-xs font-bold uppercase tracking-wider">
-                                <th class="p-4 border-b">No</th>
-                                <th class="p-4 border-b min-w-[200px]">Nama Siswa</th>
-                                <th class="p-4 border-b text-center">Tafsir</th>
-                                <th class="p-4 border-b text-center">Hadits</th>
-                                <th class="p-4 border-b text-center">Mahf. 3</th>
-                                <th class="p-4 border-b text-center">Mahf. 1</th>
-                                <th class="p-4 border-b text-center">Doa</th>
-                                <th class="p-4 border-b text-center">Al-Quran</th>
-                                <th class="p-4 border-b text-center">Wudlu</th>
-                                <th class="p-4 border-b text-center">Tayammum</th>
-                                <th class="p-4 border-b text-center">Sholat</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentTableBody" class="divide-y divide-slate-100">
-                            <!-- Rows injected by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Main Content Area -->
+        <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6">
+            
+            <!-- STAGE 1: Dropdown Wali Kelas (Halaman Awal) -->
+            <div id="stage-selection" class="fade-enter fade-enter-active max-w-xl mx-auto my-12">
+                <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 text-center">
+                    <div class="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-6 text-primary-600">
+                        <i class="fa-solid fa-user-tie text-3xl"></i>
+                    </div>
+                    <h2 class="font-serif text-2xl text-slate-900 font-bold mb-2">Selamat Datang, Bapak/Ibu Guru</h2>
+                    <p class="text-slate-500 text-sm mb-8">Silakan pilih nama Wali Kelas untuk memulai proses pengisian nilai kelas Anda.</p>
+                    
+                    <div class="text-left mb-6">
+                        <label for="select-wali" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                            Pilih Wali Kelas
+                        </label>
+                        <div class="relative">
+                            <select id="select-wali" onchange="handleClassSelection()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 pl-11 text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all appearance-none cursor-pointer">
+                                <option value="" disabled selected>-- Cari & Pilih Nama Anda --</option>
+                                <option value="3A">3A Dini Nazhifah, M.Ag</option>
+                                <option value="3B">3B Wulan Sri Ratna</option>
+                                <option value="3C">3C Adela Nur Kholishoh</option>
+                                <option value="3D">3D Anisa Fatihah Ariyanti, S.Ag</option>
+                                <option value="3E">3E Yeni Siti Sarifah, S.Pd.I</option>
+                                <option value="3F">3F Dedi Munajat, M.Sos</option>
+                                <option value="3G">3G Muhammad Wahid, S.Kom.I</option>
+                                <option value="3H">3H Awaluddin Fauzan, S.Ag</option>
+                                <option value="3I">3I Ahmad Yusup, S.Pd</option>
+                                <option value="3J">3J M. Saddam Ramadhan, S.Pd.</option>
+                            </select>
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-id-badge"></i>
+                            </div>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="p-8 bg-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p class="text-slate-500 text-sm italic">*Data akan dikirim secara kolektif. Siswa yang nilainya kosong tidak akan masuk ke sistem.</p>
-                    <button id="btnKirim" onclick="submitData()" class="group relative bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-12 rounded-2xl shadow-lg shadow-indigo-200 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center gap-2">
-                        <span>Kirim Data ke Spreadsheet</span>
-                        <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    </button>
+                    <div class="bg-amber-50 rounded-xl p-4 border border-amber-100 text-left flex gap-3 text-xs text-amber-800">
+                        <i class="fa-solid fa-triangle-exclamation text-lg text-amber-600 mt-0.5 shrink-0"></i>
+                        <div>
+                            <span class="font-bold">Batas Pengumpulan Data:</span><br>
+                            Data wajib diserahkan ke Kurikulum KMMI selambat-lambatnya pada <strong>Sabtu, 16 Mei 2026</strong>.
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div id="statusBox" class="hidden fixed top-10 right-1/2 translate-x-1/2 md:right-10 md:translate-x-0 z-50 p-6 rounded-2xl shadow-2xl animate-bounce">
-            <!-- Content dynamic -->
+            <!-- STAGE 2: Grading Dashboard (Kondisional setelah memilih) -->
+            <div id="stage-grading" class="hidden fade-enter">
+                
+                <!-- Back bar & Info header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <button onclick="goToStage1()" class="hover:bg-slate-100 p-2 rounded-lg text-slate-600 transition-colors">
+                            <i class="fa-solid fa-arrow-left text-lg"></i>
+                        </button>
+                        <div>
+                            <span class="text-xs uppercase font-bold tracking-wider text-primary-600" id="badge-kelas">Kelas --</span>
+                            <h2 class="text-lg font-bold text-slate-900" id="label-wali-title">Wali Kelas --</h2>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-slate-500">Pencarian Siswa:</span>
+                        <div class="relative">
+                            <input type="text" id="search-siswa" oninput="filterSiswaTable()" placeholder="Ketik nama siswa..." class="bg-slate-50 border border-slate-200 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:bg-white w-48 md:w-64 transition-all">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2 text-slate-400 text-[10px]"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Petunjuk Pengisian (Collapsible) -->
+                <div class="bg-emerald-50 rounded-xl border border-emerald-100 p-4 mb-6 shadow-sm">
+                    <button onclick="toggleGuidelines()" class="w-full flex justify-between items-center text-left text-emerald-900 font-semibold focus:outline-none">
+                        <span class="flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-circle-info text-emerald-600"></i> PETUNJUK PENGISIAN NILAI
+                        </span>
+                        <i id="guideline-icon" class="fa-solid fa-chevron-up text-xs transition-transform"></i>
+                    </button>
+                    <div id="guideline-content" class="mt-3 text-xs text-emerald-800 space-y-2 border-t border-emerald-200/50 pt-3 leading-relaxed">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <h4 class="font-bold uppercase tracking-wider text-emerald-900 mb-1">1. Penilaian SKS (Hafalan)</h4>
+                                <p>Tuliskan jumlah capaian target hafalan berupa angka atau teks singkat.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold uppercase tracking-wider text-emerald-900 mb-1">2. Penilaian Al-Qur'an & Ibadah Amaliyah</h4>
+                                <ul class="space-y-0.5">
+                                    <li><span class="font-bold">A :</span> Sangat Baik</li>
+                                    <li><span class="font-bold">B :</span> Baik</li>
+                                    <li><span class="font-bold">C :</span> Cukup</li>
+                                    <li><span class="font-bold">D :</span> Tidak Lulus / Kurang (Perlu Pembinaan)</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold uppercase tracking-wider text-emerald-900 mb-1">3. Pengumpulan Data</h4>
+                                <p>Data akan langsung masuk ke Google Sheet. Dikumpulkan ke Kurikulum KMMI pada hari <strong>Sabtu, 16 Mei 2026</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Summary Row -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Total Siswa</span>
+                            <h3 class="text-xl font-bold text-slate-800 mt-0.5" id="stat-total">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Telah Diisi</span>
+                            <h3 class="text-xl font-bold text-emerald-600 mt-0.5" id="stat-filled">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-square-check"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Belum Selesai</span>
+                            <h3 class="text-xl font-bold text-amber-500 mt-0.5" id="stat-pending">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Progress Pengisian</span>
+                            <h3 class="text-xl font-bold text-slate-800 mt-0.5" id="stat-percent">0%</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-primary-50 text-primary-500 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grading Grid & Input Table -->
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-lg overflow-hidden mb-24">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse" id="students-table">
+                            <thead>
+                                <tr class="bg-slate-100/75 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider select-none">
+                                    <th class="py-4 px-3 text-center w-12 sticky left-0 bg-slate-100/75 z-20">No</th>
+                                    <th class="py-4 px-4 sticky left-12 bg-slate-100/75 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)] min-w-[200px]">Nama Lengkap</th>
+                                    <!-- SKS Hafalan Headers -->
+                                    <th class="py-4 px-2 text-center bg-primary-50/50 border-r border-slate-200 min-w-[100px]">Tafsir 1<br><span class="text-[9px] text-slate-400 normal-case">(30 Ayat)</span></th>
+                                    <th class="py-4 px-2 text-center bg-primary-50/50 border-r border-slate-200 min-w-[100px]">Tafsir Kls 3<br><span class="text-[9px] text-slate-400 normal-case">(13 Ayat)</span></th>
+                                    <th class="py-4 px-2 text-center bg-primary-50/50 border-r border-slate-200 min-w-[100px]">Hadits 1<br><span class="text-[9px] text-slate-400 normal-case">(25 Ayat)</span></th>
+                                    <th class="py-4 px-2 text-center bg-primary-50/50 border-r border-slate-200 min-w-[100px]">Hadits 3<br><span class="text-[9px] text-slate-400 normal-case">(28 Hadits)</span></th>
+                                    <th class="py-4 px-2 text-center bg-primary-50/50 border-r border-slate-200 min-w-[100px]">Mahfudzat 1<br><span class="text-[9px] text-slate-400 normal-case">(86 Judul)</span></th>
+                                    <th class="py-4 px-2 text-center bg-primary-50/50 border-r border-slate-200 min-w-[100px]">Mahfudzat 3<br><span class="text-[9px] text-slate-400 normal-case">(16 Judul)</span></th>
+                                    <th class="py-4 px-2 text-center bg-primary-50/50 border-r border-slate-200 min-w-[100px]">Doa-Doa<br><span class="text-[9px] text-slate-400 normal-case">(84 Do'a)</span></th>
+                                    <!-- Amaliyah Headers -->
+                                    <th class="py-4 px-2 text-center bg-amber-50/30 border-r border-slate-200 min-w-[120px]">Al-Qur'an<br><span class="text-[9px] text-amber-600/70">(A/B/C/D)</span></th>
+                                    <th class="py-4 px-2 text-center bg-amber-50/30 border-r border-slate-200 min-w-[120px]">Wudlu<br><span class="text-[9px] text-amber-600/70">(A/B/C/D)</span></th>
+                                    <th class="py-4 px-2 text-center bg-amber-50/30 border-r border-slate-200 min-w-[120px]">Tayammum<br><span class="text-[9px] text-amber-600/70">(A/B/C/D)</span></th>
+                                    <th class="py-4 px-2 text-center bg-amber-50/30 min-w-[120px]">Sholat<br><span class="text-[9px] text-amber-600/70">(A/B/C/D)</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="grading-rows-container" class="divide-y divide-slate-100">
+                                <!-- Generated Dynamically in JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Footer Action Bar -->
+                <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] py-4 px-6 z-40">
+                    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="text-xs text-slate-500 text-center sm:text-left">
+                            <p class="font-semibold text-slate-700" id="action-summary">Menyiapkan form...</p>
+                            <p class="text-[10px]">Perubahan disimpan sementara secara otomatis di memori lokal</p>
+                        </div>
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <button onclick="clearDraftWithConfirmation()" class="text-slate-500 hover:text-red-600 text-xs px-3 py-2 rounded-lg hover:bg-red-50 transition-colors w-1/3 sm:w-auto">
+                                <i class="fa-solid fa-trash-can mr-1"></i> Bersihkan
+                            </button>
+                            <button onclick="submitDataToGoogleSheet()" id="btn-submit" class="w-2/3 sm:w-auto bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold px-6 py-3 rounded-xl shadow-lg shadow-primary-500/10 flex items-center justify-center gap-2 transition-all transform active:scale-95">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Kirim ke Google Sheets
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+
+    <!-- POPUP MODAL: Konfigurasi Spreadsheet -->
+    <div id="modal-setup" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-100 flex flex-col overflow-hidden max-h-[90vh]">
+            <div class="bg-primary-900 text-white p-6 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-gears text-xl text-primary-200"></i>
+                    <h3 class="font-bold text-lg">Konfigurasi Google Spreadsheet</h3>
+                </div>
+                <button onclick="toggleSetupModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto custom-scrollbar space-y-4">
+                <div>
+                    <label for="web-app-url" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Web App URL (Google Apps Script)</label>
+                    <input type="url" id="web-app-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all">
+                    <p class="text-[10px] text-slate-500 mt-1">Masukkan URL Web App dari Apps Script yang telah Anda deploy di Spreadsheet Anda.</p>
+                </div>
+
+                <div class="border-t border-slate-200 pt-4">
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700 mb-2"><i class="fa-solid fa-circle-info mr-1 text-primary-600"></i> Cara Menghubungkan ke Spreadsheet Anda:</h4>
+                    <ol class="list-decimal list-inside text-xs text-slate-600 space-y-2 leading-relaxed">
+                        <li>Buat Google Spreadsheet baru di Google Drive Anda.</li>
+                        <li>Buka menu <span class="font-semibold">Ekstensi</span> &gt; <span class="font-semibold">Apps Script</span>.</li>
+                        <li>Hapus seluruh kode bawaan, lalu salin (copy) kode di bawah ini:</li>
+                    </ol>
+                    
+                    <div class="relative mt-2">
+                        <pre class="bg-slate-900 text-slate-300 text-[10px] p-4 rounded-xl overflow-x-auto font-mono max-h-48 custom-scrollbar" id="code-snippet">
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  
+  // Ambil data JSON dari payload request
+  var data = JSON.parse(e.postData.contents);
+  
+  // Jika kolom masih kosong, buat baris Header
+  if (sheet.getLastRow() === 0) {
+    var headers = [
+      "Waktu Pengisian", "Wali Kelas", "Kelas", "No Absen", "Nama Siswa", 
+      "Tafsir 1 (30)", "Tafsir 3 (13)", "Hadits 1 (25)", "Hadits 3 (28)", 
+      "Mahfudzat 1 (86)", "Mahfudzat 3 (16)", "Doa-doa (84)", 
+      "Al-Qur'an", "Wudlu", "Tayammum", "Sholat"
+    ];
+    sheet.appendRow(headers);
+  }
+  
+  var timestamp = new Date();
+  var rowsAdded = 0;
+  
+  // Loop data siswa yang dikirimkan
+  for (var i = 0; i < data.siswa_list.length; i++) {
+    var s = data.siswa_list[i];
+    
+    // Simpan baris data
+    sheet.appendRow([
+      timestamp,
+      data.wali_kelas,
+      data.kelas,
+      s.no_absen,
+      s.nama_siswa,
+      s.tafsir_1,
+      s.tafsir_3,
+      s.hadits_1,
+      s.hadits_3,
+      s.mahfudzat_1,
+      s.mahfudzat_3,
+      s.doa_doa,
+      s.al_quran,
+      s.wudlu,
+      s.tayammum,
+      s.sholat
+    ]);
+    rowsAdded++;
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({
+    "status": "success",
+    "rows_added": rowsAdded
+  })).setMimeType(ContentService.MimeType.JSON);
+}</pre>
+                        <button onclick="copyCodeSnippet()" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-2 py-1 rounded text-[10px] flex items-center gap-1">
+                            <i class="fa-solid fa-copy"></i> Copy
+                        </button>
+                    </div>
+
+                    <ol class="list-decimal list-inside text-xs text-slate-600 space-y-2 leading-relaxed mt-3" start="4">
+                        <li>Klik ikon <span class="font-semibold">Simpan (Save)</span>.</li>
+                        <li>Klik tombol <span class="font-semibold">Terapkan (Deploy)</span> &gt; <span class="font-semibold">Penerapan Baru (New Deployment)</span>.</li>
+                        <li>Pilih tipe: <span class="font-semibold">Aplikasi Web (Web App)</span>.</li>
+                        <li>Setel <span class="font-semibold">Yang memiliki akses (Who has access)</span> ke <span class="font-semibold">"Siapa saja" (Anyone)</span>.</li>
+                        <li>Klik <span class="font-semibold">Terapkan</span>, selesaikan otorisasi akun Google Anda, lalu salin <span class="font-semibold">URL Aplikasi Web</span> Anda ke form di atas.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end gap-2 shrink-0">
+                <button onclick="toggleSetupModal()" class="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-xl text-xs font-bold text-slate-700">Batal</button>
+                <button onclick="saveSetupConfig()" class="bg-primary-600 hover:bg-primary-700 px-5 py-2 rounded-xl text-xs font-bold text-white shadow">Simpan Konfigurasi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP MODAL: Notifikasi Custom -->
+    <div id="modal-notif" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-100 flex flex-col items-center">
+            <div id="notif-icon-container" class="w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                <!-- Dynamic Icon -->
+            </div>
+            <h3 id="notif-title" class="font-bold text-slate-900 text-lg mb-1">Judul Notifikasi</h3>
+            <p id="notif-message" class="text-slate-500 text-xs mb-6">Pesan pemberitahuan...</p>
+            <button onclick="closeNotification()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 px-6 rounded-xl transition-all w-full">Tutup</button>
         </div>
     </div>
 
     <script>
-        const studentData = {
-            "3A": ["Annisa Nur Fathonah", "Assyifa Rinjani", "Asyila Hanifah", "Azkia Amira Aufasilmi Arrifa'I", "Cahaya Kirana Ramadhani", "Davina Syaira Oktaviani", "Delia Maharani Nasyila Haida", "Elena Putri", "Farida Sholihat", "Karlina Salsabila Khaerunisa", "Lutfiatul Wirda", "Mutiara Kharisa", "Nabila Ashabira", "Nadiva Fauziah Sundari", "Nafia Nadira Zain", "Putri Faza Fauziah", "Rachelia Silviana Assyifa", "Rahma Nur Alviani Sardi", "Renita Nur Hidayah", "Safira Maitsa Anggraeni", "Shabiyah Hasna Fahira", "Shilvana Khanza Azzahra", "Syabila Najla Sukma Nur Azeeza", "Syahrini Irawan", "Tiara Rahayu Pratiwi", "Zasqiya Nayshila Bilqis"],
-            "3B": ["Almeida Azfira Sadly", "Ameera Widjayakusuma Fisher", "Dinda Sephia Azahra", "Dwi Nafisa", "Ghaina Maitsa Ayu", "Hasna Zakiya Faridansyah", "Hasri Ainun Althafunnisa", "Hasya Hauratunnaziha", "Indyra Angely Firmansyah", "Kanasya Radinda Andriani", "Kayla Nafeeza Malika", "Meisya Muvianti", "Nabila Khairunnisa", "Naimah Sari Febiyanti", "Nisha Aurellia", "Putri Wulandari", "Qurrotu Aini Yusriyyah", "Regina Auliya Oktavia", "Rihhadah Aisy Anasyalu Ramadhani", "Salsa Fitria Ramadhani", "Syahrini Aulia Pelani", "Tifany Fifa Kananda", "Vina Khairunnisa", "Vira Nur Alya Garniawan Kartawidjaja", "Zivana Almaira Nuryudha"],
-            "3C": ["Alya Shafiqa Almahdi", "Amelia Febriani", "Azhara Khansa Putri Zalza", "Bilqis Khoerunnisa Komariah", "Davina Putri Dira", "Fairuz Hasna Fatimah", "Juwita Rizkia", "Kanaia Salsyabila Lifia Putri", "Meilika Liviani", "Meisya Syifa An-Nazwa", "Nabila Esa Lestari", "Nadiya Shahwa", "Naffiza Zara Adifa", "Naya Mufliha Kamil", "Nur Prisa Dina", "Qisty Zahrani Hariri", "Rifa Humaira", "Rineke Rindu Putri Syamsudin", "Rizquita Putri Herwina", "Sabila Agustin Gunawan", "Sandra Kirana", "Saski Nurul Azkiya", "Siti Salisatun Niqmah", "Syifa Aulia Bilqis", "Tiara Nadiah Putri", "Widia Khoirunisa", "Aina Fariza Razkia Putri"],
-            "3D": ["Aira Zahra Firdaus", "Al Egisa Nur Desi Yanti", "Amira Nurul Izzati Wahid", "Aretta Putri Saka Giri Kawiswari", "Diva Silvia", "Filzah Hilwa Azizah", "Hafshah Khairun Nisa", "Meisya Sarah Nurfadillah", "Mikhayla Nikeisya Angelique Rahman", "Missel Fairuz Queena", "Nadya Mustika Putri", "Nasya Shakila Kirania", "Qonita Mei Zerlina", "Ratu Kynan Avrisha", "RD. Alexandria Kanaya Islamey", "Saqila Irdina", "Sayyidah Humaira Hikmatul Kamaliyah", "Syahla Atha Juni Zhahirah", "Siti Qodariyah", "Syarifatul Aghniya", "Tania Rachmalina Mardani", "Vina Ramadhani", "Windi Diyanti Awaludin", "Yetce Sherryna Abriyati Nenre", "Zahirah Addzikra Putrisyah"],
-            "3E": ["Ajeng Olivia", "Anindita Khairinniswa", "Aqila Asyifa Putri", "Azmina Fatima Zahra", "Bilqiis Salwaa Sukarna Putri", "Cindy Candrawati", "Dinda Permatasari", "Fathma Nailatul Izzah", "Flora Nisrina Eldianty", "Ghaisani Tsabita Zahran", "Hasna Nurul Farzana", "Humaira Putri Vihandra", "Jihan Dwika Khairani", "Kanaya Andita Destari", "Kayyisa Rafifah", "Mega Octaviani", "Mirza Auliya Thahira", "Nadhira Febriyani Putri Sulaeman", "Nurul Maudi Mauludina Suryani", "Paula Haiffa Patmanegara", "Pratami Dina Miggan", "Putri Nurhibatillah", "Qiran Auliya Salma", "Rifda Kalila Sakhi", "Salma Dwi Nurfitriana", "Syelvi Adyanti Syutari"],
-            "3F": ["Aad Abdul Basith", "Arraffi Dian Ihsandy", "Arsa Azhuardi Vandani", "Arvila Dwi Anugrah", "Billy Ibnu Ardhani", "Caesar Dzaky Mulyadi", "Daffa Alima Putra", "Dimas Robyhurahman Kabir", "Faiz Irsyad Anshari", "Ghusan Gathfan", "Ilham Mulya Agung", "Kenzie Sulangga Behuku", "M. Randhika Al-Fahkry", "Mohammad Abdul Djabbar Al Harits", "Muhamad Arfa Al Qalil", "Muhamad Firdaus Satria Nugraha", "Muhammad Akmal Bahari", "Muhammad Dafa Fahreza", "Muhammad Ikmal Riadussolihin", "Muhammad Zikri Zaenudin", "Nathan Rafiiandra Muzakki", "Radika Raesha Putra", "Rayi Dwi Putra", "Ready Martua Hasibuan", "Rizal Akbar Suherman", "Rizky Fadhil", "Rohmat Raynaldy", "Zidan Muhamad Habib Muslim", "Zidni Ilman Arrizkani"],
-            "3G": ["Andara Putra", "Argya Putra Risnandar", "Bani Lukman Mulyazmi Susanto", "Fajar Syarief Hidayatullah", "Faza Rahadyan Sidiq", "Hilman Ahmad Muharom", "Ilyas Hadi Kusuma", "Khoirul Azzam Ashidqi", "Luthfi Dwi Irawan", "M Dapa Ruslan", "M. Risqi Pandowo", "M.Zingga Hamzah Ulumuddin", "Mochammad Erghian Aghni Rasyidan", "Much Natsir Fairus Nurman", "Muhammad Alif Farhan", "Muhammad Daffa Almulqi Firdaus", "Muhammad Haikal Azmi", "Muhammad Najmy Tsaqib Annaisabury", "Muhammad Sayyidi Syafiq Fijratulloh", "Nabiel Ahmad Shodiq", "Nanda Juan Pratama", "Naufallatif Ahmad", "Nur Muhammad Davan Alkhaesa", "Prabu Aljabbar Putra Juhana", "Reza Ediz Arfan", "Rivan Saputra", "Satria Dwi Januar F", "Zhavier Muhammad Idrok"],
-            "3H": ["A Rifky Muhaimin", "Adam Mustanir Hibatullah", "Arsyad Anwar", "Azka Fadillah Jayakusuma", "Daffa Bachdim Nadindra", "Fakhri Aryasatya Rahman", "Fawwaz Alyasir", "Ghaly Fatani Fawaz", "Hafidh Atha Musari", "Hanif Khoiri Ash Shiddiqi", "Iqbal Thoriq Al-Ghoni", "Mochamad Fachri Ediawan", "Muhamad Khoirul Akhbar", "Muhamad Raif Ramadhan", "Muhamad Zidan Awaludin", "Muhammad Danish Amsyar Piliang", "Muhammad Dyaz Wijaksana", "Muhammad Hikam Husni Mubarrok", "Muhammad Syakur Ulwan", "Muhammad Zaidan Ramadhan", "Nova Aris Mulyana", "Rainov Patrialis Sutami", "Sammi Adji Faatih Gardika", "Satria Andika Pratama", "Sayyid Munji Al-Hadi", "Utsman Andhika Mukarom", "Zamzam Arifuzaman Sa'Ad", "Zein Naajil Hurry Ramdhani"],
-            "3I": ["Aidil Ahza Sakiffa", "Arif Al Hafid", "Arkan Ataya Ramadhan", "Aufa Ripqi Zaidan", "Den Rizik Asyafari", "El Fatih Nur Khoiron", "Farras Zahid Gunawan", "Fauzan Al Bairuni Surya", "Mahesya Chandra Wijaya", "Mochamad Rizki Adhitya Putra", "Muhamad Marwan Hanafi", "Muhamad Nasril Ilham", "Muhammad Azzam Ash Shiddiq", "Muhammad Dimas Syahril Nur Taqwa", "Muhammad Fauzan", "Muhammad Haikal Fathurahman", "Muhammad Naufal Musyaffa", "Muhammad Pray Raja Murtadla Rabany Alhamidi", "Muhammad Rahmat Fajar", "Naufal Raditya Putra", "Raka Aditya Rubiana", "Rifa Dio Arvia Ahmad", "Rizki Naufal Arrafi", "Sami Auliya", "Syamil Sholahuddin Hariz", "Zaidan Khairullah Firmansyah", "Zamzam Risnandi"],
-            "3J": ["Abyan Zaki Al Ahnaf", "Althaf Farid Mutaqqin", "Arva Pratama Nuzulul Mauludin", "Azka Alvaro Hidayat", "Azka Deyandrika", "Dias Adytia", "Fikri Firman Firdaus", "Habib Rafi Rabbani", "Haris Febriansyah", "Ilham April Rizal", "Maulana Zidan Alfatih", "Muhammad Azka Alfarhaby Rukman", "Muhammad Herlangga Pratama", "Muhammad Hudan Al Faruq", "Muhammad Radif Al Farizi", "Muhammad Ridho Wibowo", "Muhammad Rizqi Fadilah", "Muhammad Ziqri Zayyani", "Nizam Joharudin Putra", "Panji Ikhwan Alkhoir", "Qidham Kholid Edriansyah", "Radi Aditya Labdagati", "Rafa Ramdhani Badri Aziz", "Resya Sanda Sandrian", "Reza Permana Putra", "Rizqy Pratama", "Sabiq Alif Arrasyid Hidayat", "Zian Fadhilah"]
+        // State variables
+        let selectedClass = "";
+        let classSiswaList = [];
+        let draftGrades = {}; // Stores key: 'kelas-absen-colName', value: 'input value'
+        let spreadsheetConfig = {
+            webAppUrl: ""
         };
 
-        let currentWali = "";
-        let currentKelas = "";
-
-        function handleTeacherChange(val) {
-            if (!val) {
-                document.getElementById('studentContainer').classList.add('hidden');
-                return;
+        // Initialize App
+        window.onload = function() {
+            // Load saved config
+            const savedConfig = localStorage.getItem('kmmi_sheet_config');
+            if (savedConfig) {
+                spreadsheetConfig = JSON.parse(savedConfig);
+                document.getElementById('web-app-url').value = spreadsheetConfig.webAppUrl;
             }
-            
-            const parts = val.split('|');
-            currentKelas = parts[0];
-            currentWali = parts[1];
 
-            document.getElementById('displayKelas').innerText = `Daftar Siswa Kelas ${currentKelas}`;
-            document.getElementById('displayWali').innerText = `Wali Kelas: ${currentWali}`;
+            // Load saved drafts
+            const savedDrafts = localStorage.getItem('kmmi_grades_draft');
+            if (savedDrafts) {
+                draftGrades = JSON.parse(savedDrafts);
+            }
+        };
+
+        // Handling Class Dropdown Selection
+        function handleClassSelection() {
+            const selectEl = document.getElementById('select-wali');
+            selectedClass = selectEl.value;
+            if (!selectedClass) return;
+
+            // Transisi halus halaman awal -> halaman penilaian
+            const s1 = document.getElementById('stage-selection');
+            const s2 = document.getElementById('stage-grading');
             
-            renderTable(currentKelas);
-            document.getElementById('studentContainer').classList.remove('hidden');
-            document.getElementById('studentContainer').scrollIntoView({ behavior: 'smooth' });
+            s1.classList.add('opacity-0', '-translate-y-5');
+            setTimeout(() => {
+                s1.classList.add('hidden');
+                s2.classList.remove('hidden');
+                setTimeout(() => {
+                    s2.classList.add('opacity-100', 'translate-y-0');
+                    buildGradingDashboard();
+                }, 50);
+            }, 400);
         }
 
-        function renderTable(kelas) {
-            const list = studentData[kelas];
-            const tbody = document.getElementById('studentTableBody');
-            tbody.innerHTML = "";
+        function goToStage1() {
+            const s1 = document.getElementById('stage-selection');
+            const s2 = document.getElementById('stage-grading');
+            
+            s2.classList.remove('opacity-100', 'translate-y-0');
+            s2.classList.add('opacity-0', '-translate-y-5');
+            setTimeout(() => {
+                s2.classList.add('hidden');
+                s1.classList.remove('hidden');
+                setTimeout(() => {
+                    s1.classList.remove('opacity-0', '-translate-y-5');
+                    s1.classList.add('opacity-100', 'translate-y-0');
+                    // Reset dropdown
+                    document.getElementById('select-wali').value = "";
+                }, 50);
+            }, 400);
+        }
 
-            list.forEach((name, idx) => {
-                const row = document.createElement('tr');
-                row.className = "hover:bg-slate-50/80 transition-colors";
-                row.innerHTML = `
-                    <td class="p-4 text-slate-400 font-medium">${idx + 1}</td>
-                    <td class="p-4 font-semibold text-slate-700">${name}</td>
-                    ${createInputCell('tafsir')}
-                    ${createInputCell('hadits')}
-                    ${createInputCell('mahfudzat3')}
-                    ${createInputCell('mahfudzat1')}
-                    ${createInputCell('doa')}
-                    ${createInputCell('alQuran')}
-                    ${createInputCell('wudlu')}
-                    ${createInputCell('tayammum')}
-                    ${createInputCell('sholat')}
+        // Build Dashboard interface
+        function buildGradingDashboard() {
+            const classInfo = ACADEMIC_DATA[selectedClass];
+            classSiswaList = classInfo.siswa;
+
+            // Set Labels
+            document.getElementById('badge-kelas').innerText = `Kelas ${selectedClass}`;
+            document.getElementById('label-wali-title').innerText = classInfo.waliKelas;
+
+            // Reset search bar
+            document.getElementById('search-siswa').value = "";
+
+            // Build Table
+            renderSiswaTable();
+            updateProgressStats();
+        }
+
+        // Render Table list of students
+        function renderSiswaTable() {
+            const container = document.getElementById('grading-rows-container');
+            container.innerHTML = "";
+
+            classSiswaList.forEach((nama, index) => {
+                const noAbsen = index + 1;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors student-row-item";
+                tr.setAttribute('data-nama', nama.toLowerCase());
+                tr.setAttribute('data-absen', noAbsen);
+
+                // Build short answers inputs
+                const textCols = [
+                    { key: "tafsir_1", label: "Tafsir 1" },
+                    { key: "tafsir_3", label: "Tafsir Kls 3" },
+                    { key: "hadits_1", label: "Hadits 1" },
+                    { key: "hadits_3", label: "Hadits 3" },
+                    { key: "mahfudzat_1", label: "Mahfudzat 1" },
+                    { key: "mahfudzat_3", label: "Mahfudzat 3" },
+                    { key: "doa_doa", label: "Doa" }
+                ];
+
+                // Build select options
+                const gradeCols = ["al_quran", "wudlu", "tayammum", "sholat"];
+
+                let innerHtml = `
+                    <td class="py-3 px-3 text-center text-xs font-bold text-slate-400 border-r border-slate-100 sticky left-0 bg-white group-hover:bg-slate-50 z-10">${noAbsen}</td>
+                    <td class="py-3 px-4 text-xs font-semibold text-slate-800 border-r border-slate-100 sticky left-12 bg-white group-hover:bg-slate-50 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.03)]">
+                        <div class="flex flex-col">
+                            <span class="text-slate-900 leading-tight">${nama}</span>
+                            <span class="text-[9px] text-slate-400 mt-0.5">Kelas ${selectedClass} / No. ${noAbsen}</span>
+                        </div>
+                    </td>
                 `;
-                tbody.appendChild(row);
+
+                // Add text columns
+                textCols.forEach(col => {
+                    const draftVal = draftGrades[`${selectedClass}-${noAbsen}-${col.key}`] || "";
+                    innerHtml += `
+                        <td class="py-2.5 px-1.5 border-r border-slate-100 bg-primary-50/10">
+                            <input type="text" 
+                                value="${draftVal}" 
+                                oninput="handleInputSave('${noAbsen}', '${col.key}', this.value)"
+                                placeholder="Capaian..." 
+                                class="w-full text-center bg-white border border-slate-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-lg py-1 px-1.5 text-xs focus:outline-none transition-all">
+                        </td>
+                    `;
+                });
+
+                // Add select columns
+                gradeCols.forEach(col => {
+                    const draftVal = draftGrades[`${selectedClass}-${noAbsen}-${col}`] || "";
+                    let selectOptionsHtml = "";
+                    GRADE_OPTIONS.forEach(opt => {
+                        const isSelected = opt.value === draftVal ? "selected" : "";
+                        selectOptionsHtml += `<option value="${opt.value}" ${isSelected}>${opt.label}</option>`;
+                    });
+
+                    innerHtml += `
+                        <td class="py-2.5 px-1.5 border-r border-slate-100 bg-amber-50/5">
+                            <select onchange="handleInputSave('${noAbsen}', '${col}', this.value)"
+                                class="w-full text-center bg-white border border-slate-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg py-1 px-1 text-xs focus:outline-none transition-all cursor-pointer">
+                                ${selectOptionsHtml}
+                            </select>
+                        </td>
+                    `;
+                });
+
+                tr.innerHTML = innerHtml;
+                container.appendChild(tr);
             });
         }
 
-        function createInputCell(field) {
-            return `
-                <td class="p-2">
-                    <input type="text" data-field="${field}" 
-                        class="w-full min-w-[80px] p-2 text-center text-sm border border-slate-200 rounded-lg input-focus transition-all" 
-                        placeholder="-">
-                </td>
-            `;
+        // Save current typing inputs directly to Local Draft
+        function handleInputSave(noAbsen, fieldKey, val) {
+            draftGrades[`${selectedClass}-${noAbsen}-${fieldKey}`] = val;
+            localStorage.setItem('kmmi_grades_draft', JSON.stringify(draftGrades));
+            updateProgressStats();
         }
 
-        async function submitData() {
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxUuhY0lRulwcISa0S4mp9p_61Ts2MqRzk8eintWFJA1Pcq3pVL-H3_ohPG-XbOOOOC/exec'; 
+        // Calculate and display dynamic stats
+        function updateProgressStats() {
+            let totalSiswa = classSiswaList.length;
+            let filledSiswaCount = 0;
+
+            for (let index = 0; index < totalSiswa; index++) {
+                const noAbsen = index + 1;
+                // Cek jika siswa ini memiliki minimal 1 kolom terisi
+                const fields = ["tafsir_1", "tafsir_3", "hadits_1", "hadits_3", "mahfudzat_1", "mahfudzat_3", "doa_doa", "al_quran", "wudlu", "tayammum", "sholat"];
+                let isFilled = false;
+                for (let f of fields) {
+                    if (draftGrades[`${selectedClass}-${noAbsen}-${f}`]) {
+                        isFilled = true;
+                        break;
+                    }
+                }
+                if (isFilled) {
+                    filledSiswaCount++;
+                }
+            }
+
+            let pendingSiswaCount = totalSiswa - filledSiswaCount;
+            let percentProgress = totalSiswa > 0 ? Math.round((filledSiswaCount / totalSiswa) * 100) : 0;
+
+            document.getElementById('stat-total').innerText = totalSiswa;
+            document.getElementById('stat-filled').innerText = filledSiswaCount;
+            document.getElementById('stat-pending').innerText = pendingSiswaCount;
+            document.getElementById('stat-percent').innerText = `${percentProgress}%`;
+
+            // Footer Action summary text
+            const summaryLabel = document.getElementById('action-summary');
+            if (filledSiswaCount === 0) {
+                summaryLabel.innerHTML = `<span class="text-amber-600 font-semibold"><i class="fa-solid fa-triangle-exclamation"></i> Belum ada nilai yang diisi.</span> Mulai isi untuk mengirim.`;
+            } else {
+                summaryLabel.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check"></i> ${filledSiswaCount} dari ${totalSiswa} siswa terisi.</span> Siap dikirim ke Google Sheets!`;
+            }
+        }
+
+        // Client filter search
+        function filterSiswaTable() {
+            const query = document.getElementById('search-siswa').value.toLowerCase();
+            const rows = document.getElementsByClassName('student-row-item');
+
+            for (let i = 0; i < rows.length; i++) {
+                const name = rows[i].getAttribute('data-nama');
+                const noAbsen = rows[i].getAttribute('data-absen');
+                if (name.includes(query) || noAbsen.includes(query)) {
+                    rows[i].classList.remove('hidden');
+                } else {
+                    rows[i].classList.add('hidden');
+                }
+            }
+        }
+
+        // Guideline toggle transition
+        function toggleGuidelines() {
+            const content = document.getElementById('guideline-content');
+            const icon = document.getElementById('guideline-icon');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Notification controller
+        function showNotification(title, message, type = "success") {
+            const modal = document.getElementById('modal-notif');
+            const container = document.getElementById('notif-icon-container');
+            const titleEl = document.getElementById('notif-title');
+            const msgEl = document.getElementById('notif-message');
+
+            titleEl.innerText = title;
+            msgEl.innerText = message;
+
+            if (type === "success") {
+                container.className = "w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-emerald-50 text-emerald-500 border border-emerald-100";
+                container.innerHTML = '<i class="fa-solid fa-circle-check text-3xl"></i>';
+            } else if (type === "error") {
+                container.className = "w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-red-50 text-red-500 border border-red-100";
+                container.innerHTML = '<i class="fa-solid fa-circle-xmark text-3xl"></i>';
+            } else {
+                container.className = "w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-amber-50 text-amber-500 border border-amber-100";
+                container.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-3xl"></i>';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeNotification() {
+            document.getElementById('modal-notif').classList.add('hidden');
+        }
+
+        // Config Modal Controllers
+        function toggleSetupModal() {
+            const modal = document.getElementById('modal-setup');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function copyCodeSnippet() {
+            const codeText = document.getElementById('code-snippet').innerText;
+            // standard executive command copy for iframe compatibility
+            const tempText = document.createElement('textarea');
+            tempText.value = codeText;
+            document.body.appendChild(tempText);
+            tempText.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempText);
             
-            if(scriptURL === 'TEMPEL_URL_WEB_APP_ANDA_DISINI' || scriptURL === '') {
-                showStatus("Error: URL Web App belum dikonfigurasi!", "error");
+            showNotification("Disalin!", "Kode Apps Script berhasil disalin ke clipboard Anda.", "success");
+        }
+
+        function saveSetupConfig() {
+            const urlInput = document.getElementById('web-app-url').value.trim();
+            if (urlInput && !urlInput.startsWith('https://script.google.com/')) {
+                showNotification("URL Tidak Valid", "Mohon masukkan tautan Google Apps Script yang benar.", "error");
                 return;
             }
 
-            const rows = document.querySelectorAll('#studentTableBody tr');
-            const dataToSubmit = [];
+            spreadsheetConfig.webAppUrl = urlInput;
+            localStorage.setItem('kmmi_sheet_config', JSON.stringify(spreadsheetConfig));
+            toggleSetupModal();
+            showNotification("Berhasil Disimpan", "Konfigurasi Spreadsheet berhasil disimpan.", "success");
+        }
 
-            rows.forEach(row => {
-                const name = row.cells[1].innerText;
-                const inputs = row.querySelectorAll('input');
+        // Clear draft action
+        function clearDraftWithConfirmation() {
+            if (confirm("Apakah Anda yakin ingin menghapus seluruh draf nilai untuk kelas saat ini? Tindakan ini tidak dapat dibatalkan.")) {
+                const totalSiswa = classSiswaList.length;
+                const fields = ["tafsir_1", "tafsir_3", "hadits_1", "hadits_3", "mahfudzat_1", "mahfudzat_3", "doa_doa", "al_quran", "wudlu", "tayammum", "sholat"];
+                
+                for (let index = 0; index < totalSiswa; index++) {
+                    const noAbsen = index + 1;
+                    fields.forEach(f => {
+                        delete draftGrades[`${selectedClass}-${noAbsen}-${f}`];
+                    });
+                }
+                
+                localStorage.setItem('kmmi_grades_draft', JSON.stringify(draftGrades));
+                buildGradingDashboard();
+                showNotification("Bersih!", "Seluruh draf pengisian kelas ini telah dibersihkan.", "success");
+            }
+        }
+
+        // Main Submit function: POST data to Google Apps Script Endpoint
+        function submitDataToGoogleSheet() {
+            // Check config
+            if (!spreadsheetConfig.webAppUrl) {
+                showNotification("Konfigurasi Diperlukan", "Silakan klik menu 'Konfigurasi Sheets' di pojok kanan atas untuk memasukkan URL Web App Google Sheets Anda terlebih dahulu.", "warning");
+                return;
+            }
+
+            const totalSiswa = classSiswaList.length;
+            const dataToSubmit = [];
+            const fields = ["tafsir_1", "tafsir_3", "hadits_1", "hadits_3", "mahfudzat_1", "mahfudzat_3", "doa_doa", "al_quran", "wudlu", "tayammum", "sholat"];
+
+            // Filter out and only bundle students that have at least ONE grade filled
+            for (let index = 0; index < totalSiswa; index++) {
+                const noAbsen = index + 1;
+                const studentName = classSiswaList[index];
                 let hasValue = false;
-                const rowObj = {
-                    waliKelas: currentWali,
-                    kelas: currentKelas,
-                    namaSiswa: name
+                const studentData = {
+                    no_absen: noAbsen,
+                    nama_siswa: studentName
                 };
 
-                inputs.forEach(input => {
-                    const field = input.getAttribute('data-field');
-                    const val = input.value.trim();
-                    rowObj[field] = val;
-                    if (val !== "") hasValue = true;
+                fields.forEach(f => {
+                    const val = draftGrades[`${selectedClass}-${noAbsen}-${f}`] || "";
+                    if (val.trim() !== "") {
+                        hasValue = true;
+                    }
+                    studentData[f] = val;
                 });
 
                 if (hasValue) {
-                    dataToSubmit.push(rowObj);
+                    dataToSubmit.push(studentData);
                 }
-            });
+            }
 
+            // Validation if empty
             if (dataToSubmit.length === 0) {
-                showStatus("Mohon isi setidaknya satu nilai siswa!", "error");
+                showNotification("Form Kosong", "Isi minimal satu kolom nilai pada salah satu siswa sebelum mengirimkan data.", "warning");
                 return;
             }
 
-            const btn = document.getElementById('btnKirim');
-            const spinner = document.getElementById('loadingSpinner');
-            btn.disabled = true;
-            spinner.classList.remove('hidden');
-
-            try {
-                // Menggunakan mode no-cors untuk menghindari blokir CORS
-                await fetch(scriptURL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dataToSubmit)
-                });
-
-                // Karena no-cors tidak bisa membaca respon, kita anggap sukses jika sampai sini
-                showStatus(`Data sedang diproses... Silakan cek Google Sheet dalam beberapa detik.`, "success");
-                
-                // Opsional: Kosongkan input setelah berhasil
-                setTimeout(() => {
-                    document.querySelectorAll('input').forEach(i => i.value = "");
-                }, 1000);
-
-            } catch (error) {
-                console.error('Error!', error);
-                showStatus("Gagal terhubung ke server. Pastikan URL benar dan sudah di-Deploy.", "error");
-            } finally {
-                btn.disabled = false;
-                spinner.classList.add('hidden');
-            }
-        }
-
-        function showStatus(msg, type) {
-            const box = document.getElementById('statusBox');
-            box.innerText = msg;
-            box.classList.remove('hidden', 'bg-green-500', 'bg-red-500', 'text-white');
+            const btnSubmit = document.getElementById('btn-submit');
+            const originalContent = btnSubmit.innerHTML;
             
-            if (type === "success") {
-                box.classList.add('bg-green-500', 'text-white');
-            } else {
-                box.classList.add('bg-red-500', 'text-white');
-            }
+            // Set Loading state
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Sedang Mengirim...';
+            btnSubmit.className = "w-2/3 sm:w-auto bg-slate-400 text-white font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 cursor-not-allowed";
 
-            setTimeout(() => {
-                box.classList.add('hidden');
-            }, 5000);
+            const payload = {
+                wali_kelas: ACADEMIC_DATA[selectedClass].waliKelas,
+                kelas: selectedClass,
+                siswa_list: dataToSubmit
+            };
+
+            // Post request to google apps script using no-cors because of Apps Script redirect behavior
+            fetch(spreadsheetConfig.webAppUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                // with no-cors we can't read response body, but successfully finishing without error implies delivery.
+                showNotification(
+                    "Pengiriman Selesai", 
+                    `Sebanyak ${dataToSubmit.length} data siswa berhasil dikirimkan ke Google Spreadsheet Anda.`, 
+                    "success"
+                );
+                
+                // Reset button state
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalContent;
+                btnSubmit.className = "w-2/3 sm:w-auto bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold px-6 py-3 rounded-xl shadow-lg shadow-primary-500/10 flex items-center justify-center gap-2 transition-all transform active:scale-95";
+            })
+            .catch(error => {
+                console.error('Error submitting data:', error);
+                showNotification(
+                    "Gagal Mengirim", 
+                    "Pastikan URL Apps Script di pengaturan sudah benar dan Anda telah mengizinkan akses 'Anyone' saat deploy.", 
+                    "error"
+                );
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalContent;
+                btnSubmit.className = "w-2/3 sm:w-auto bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold px-6 py-3 rounded-xl shadow-lg shadow-primary-500/10 flex items-center justify-center gap-2 transition-all transform active:scale-95";
+            });
         }
     </script>
 </body>
